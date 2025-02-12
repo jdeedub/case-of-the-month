@@ -25,19 +25,19 @@ app.use(session({
 const db = new sqlite3.Database('quiz.db');
 
 // Create table for storing users (if it doesn't exist)
-// Changed "user_id" to "copr_section" to record the COPR section.
 db.serialize(() => {
   db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, copr_section TEXT, name TEXT, email TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)");
 });
 
-// Update the responses table to include a suggestion column
-// Changed "user_id" to "copr_section"
+// Update the responses table to include COPR section & suggestion
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS responses (
     id INTEGER PRIMARY KEY,
     guess TEXT,
     isCorrect BOOLEAN,
     copr_section TEXT,
+    name TEXT,
+    score INTEGER DEFAULT 0,
     suggestion TEXT,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
@@ -55,16 +55,15 @@ app.get('/login', (req, res) => {
 
 // Handle login form submission
 app.post('/login', (req, res) => {
-  // Change the field name from user_id to copr_section.
   const { copr_section, name, email, security_answer } = req.body;
 
   // Check if the security answer is correct
-  const correctSecurityAnswer = "Lee";  // Replace with the correct name of your department chairman
+  const correctSecurityAnswer = "Lee";  // Replace with the correct chairman's name
   if (security_answer.trim().toLowerCase() !== correctSecurityAnswer.toLowerCase()) {
     return res.send('<h2>Incorrect answer to the security question. Please try again.</h2>');
   }
 
-  // Store the user details in the database using the COPR section
+  // Store user details in the database
   db.run("INSERT INTO users (copr_section, name, email) VALUES (?, ?, ?)", [copr_section, name, email], function (err) {
     if (err) {
       console.log(err.message);
@@ -72,12 +71,12 @@ app.post('/login', (req, res) => {
     }
     console.log(`User logged in with ID ${this.lastID}`);
     
-    // Save user data in session, including the COPR section.
+    // Save user data in session
     req.session.user = {
-      id: this.lastID,     // The auto-generated database ID
-      copr_section,        // The COPR section from the form
-      name,                // The user's name
-      email                // The user's email
+      id: this.lastID,
+      copr_section,
+      name,
+      email
     };
 
     // Redirect to the quiz page
@@ -90,14 +89,13 @@ app.get('/quiz', (req, res) => {
   if (!req.session.user) {
     return res.redirect('/login');
   }
-  // Record the quiz start time if it hasn't been set
   if (!req.session.quizStartTime) {
     req.session.quizStartTime = Date.now();
   }
   res.sendFile(__dirname + '/views/quiz.html');
 });
 
-// Logout route: Destroys the session and redirects to login
+// Logout route
 app.get('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -109,47 +107,90 @@ app.get('/logout', (req, res) => {
 
 // Route to handle quiz submissions
 app.post('/submit', (req, res) => {
-  // Ensure the quiz start time exists in the session
   const quizStartTime = req.session.quizStartTime;
   const now = Date.now();
-  if (!quizStartTime || (now - quizStartTime) > 180000) { // 180,000 ms = 3 minutes
+  if (!quizStartTime || (now - quizStartTime) > 180000) { // 3-minute limit
     return res.send("Time's up! You took too long to answer.");
   }
-  
-  // Process the quiz submission if within time
+
   const userGuess = req.body.guess;
-  const correctAnswer = 'cat';  // Replace with your actual correct answer
+  const correctAnswer = 'cat';  // Replace with the actual correct answer
   const isCorrect = userGuess.trim().toLowerCase() === correctAnswer.toLowerCase();
-  
-  // Get the user from the session and extract the COPR section
   const user = req.session.user;
   const copr_section = user ? user.copr_section : 'unknown';
+  const name = user ? user.name : 'unknown';
+  const score = isCorrect ? 5 : 0; // 5 points for correct answers, 0 for wrong answers
 
-  // Save the response to the database and then render the results page
-  db.run("INSERT INTO responses (guess, isCorrect, copr_section) VALUES (?, ?, ?)",
-    [userGuess, isCorrect, copr_section],
+  // Save response
+  db.run("INSERT INTO responses (guess, isCorrect, copr_section, name, score) VALUES (?, ?, ?, ?, ?)",
+    [userGuess, isCorrect, copr_section, name, score],
     function (err) {
       if (err) {
         console.log(err.message);
         return res.send("There was an error saving your response.");
       }
-      console.log(`A response has been saved with ID ${this.lastID}`);
+      console.log(`Response saved with ID ${this.lastID}`);
 
-      // Render the results page with the necessary data.
+      // Render the results page
       res.render('results', {
-        result: isCorrect,
         userGuess: userGuess,
         correctAnswer: correctAnswer,
-        explanation: "Cats are small, carnivorous mammals that have been domesticated for thousands of years. They are known for their agility, independence, and playful behavior.",
-        responseId: this.lastID  // Pass the response ID to the template for suggestions.
+        explanation: "Cats are small, carnivorous mammals that have been domesticated for thousands of years.",
+        responseId: this.lastID
       });
   });
 });
 
-// New route to handle suggestion submissions
+// **Leaderboard Route - COPR Sections (Top 5 Responses Counted, Correct or Incorrect)**
+app.get('/leaderboard', (req, res) => {
+  // Query to calculate total score for each COPR section (top 5 responses counted, including wrong answers)
+  const sectionSQL = `
+    SELECT copr_section, SUM(score) as total_score
+    FROM (
+        SELECT copr_section, score
+        FROM responses
+        WHERE copr_section IS NOT NULL
+        ORDER BY RANDOM()
+        LIMIT 5  -- Only count the top 5 highest scores per section, including wrong answers
+    ) 
+    GROUP BY copr_section
+    ORDER BY total_score DESC;
+  `;
+
+  // Query to find the top consistent individual performers (all correct answers)
+  const individualSQL = `
+    SELECT name, copr_section, COUNT(*) as correct_count
+    FROM responses
+    WHERE isCorrect = 1
+    GROUP BY name, copr_section
+    HAVING correct_count > 1  -- Only show individuals with multiple correct answers
+    ORDER BY correct_count DESC, name ASC;
+  `;
+
+  db.all(sectionSQL, [], (err, sectionRows) => {
+    if (err) {
+      console.log(err.message);
+      return res.send("Error retrieving section leaderboard data.");
+    }
+
+    db.all(individualSQL, [], (err, individualRows) => {
+      if (err) {
+        console.log(err.message);
+        return res.send("Error retrieving individual performer data.");
+      }
+
+      // Render leaderboard with section scores and top performers
+      res.render('leaderboard', {
+        leaderboard: sectionRows,  // Section leaderboard
+        topPerformers: individualRows  // Individual recognitions
+      });
+    });
+  });
+});
+
+// Route to handle suggestions
 app.post('/suggest', (req, res) => {
   const { responseId, suggestion } = req.body;
-  // Update the responses table, adding the suggestion for the given response ID.
   db.run("UPDATE responses SET suggestion = ? WHERE id = ?", [suggestion, responseId], function(err) {
     if (err) {
       console.log(err.message);
@@ -159,7 +200,7 @@ app.post('/suggest', (req, res) => {
   });
 });
 
-// Start the server and listen on the specified port.
+// Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

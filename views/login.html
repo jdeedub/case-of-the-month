@@ -1,53 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login & Instructions - Case of the Month</title>
+    <title>Login</title>
     <style>
-      body {
-        background-color: black;
-        color: white;
-        font-family: Arial, sans-serif;
-        margin: 20px;
-      }
-      .instructions {
-        background-color: #222;
-        padding: 15px;
-        border-radius: 5px;
-        margin-bottom: 20px;
-      }
-      label, input, button {
-        font-size: 1rem;
-      }
-      input, button {
-        padding: 5px;
-        margin-top: 5px;
-      }
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        select, input {
+            padding: 10px;
+            margin: 10px;
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <h1>Welcome to Case of the Month!</h1>
-    <div class="instructions">
-      <h2>Here's How it Works:</h2>
-      <p>After logging in, you will have 3 minutes to review the image(s) and provide your answer.</p>
-      <p>You may search the web during that time. Only your first submission will be counted.</p>
-    </div>
-    <!-- Login Form -->
+    <p>After logging in, you will have 3 minutes to review the images and provide your answer. You may search the web during that time. Only your first submission will be counted.</p>
+
     <form action="/login" method="POST">
-      <label for="user_id">COPR Section:</label><br>
-      <input type="text" id="user_id" name="user_id" required><br><br>
-      
-      <label for="name">Name:</label><br>
-      <input type="text" id="name" name="name" required><br><br>
-      
-      <label for="email">Email:</label><br>
-      <input type="email" id="email" name="email" required><br><br>
-      
-      <label for="security_answer">Security: First name of the department chair?</label><br>
-      <input type="text" id="security_answer" name="security_answer" required><br><br>
-      
-      <button type="submit">Login</button>
+        <label for="user_id">User ID:</label><br>
+        <input type="text" id="user_id" name="user_id" required><br>
+
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" required><br>
+
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email" required><br>
+
+        <label for="copr_section">Select Your COPR Section:</label><br>
+        <select id="copr_section" name="copr_section" required>
+            <option value="Neuro">Neuro</option>
+            <option value="MSK">MSK</option>
+            <option value="Peds">Peds</option>
+            <option value="IR">IR</option>
+            <option value="Mamma">Mamma</option>
+            <option value="Body">Body</option>
+            <option value="Emergency">Emergency</option>
+        </select><br>
+
+        <label for="security_answer">What is the first name of the department chairman?</label><br>
+        <input type="text" id="security_answer" name="security_answer" required><br>
+
+        <button type="submit">Login</button>
     </form>
-  </body>
+</body>
 </html>
