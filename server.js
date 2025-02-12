@@ -41,6 +41,11 @@ db.serialize(() => {
   )`);
 });
 
+// NEW ROOT ROUTE: Redirect requests from "/" to "/login"
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
+
 // Serve the login page
 app.get('/login', (req, res) => {
   res.sendFile(__dirname + '/views/login.html');
@@ -155,3 +160,4 @@ app.post('/suggest', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
