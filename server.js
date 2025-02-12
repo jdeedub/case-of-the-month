@@ -113,9 +113,10 @@ app.post('/submit', (req, res) => {
     return res.send("Time's up! You took too long to answer.");
   }
 
-  const userGuess = req.body.guess;
-  const correctAnswer = 'cat';  // Replace with the actual correct answer
-  const isCorrect = userGuess.trim().toLowerCase() === correctAnswer.toLowerCase();
+  const userGuess = req.body.guess.trim().toLowerCase(); // Normalize user input
+  const correctAnswers = ["cat", "kitty", "feline"]; // List of acceptable answers
+  const isCorrect = correctAnswers.includes(userGuess); // Check if response is correct
+
   const user = req.session.user;
   const copr_section = user ? user.copr_section : 'unknown';
   const name = user ? user.name : 'unknown';
@@ -141,8 +142,8 @@ app.post('/submit', (req, res) => {
 
       // Render the results page
       res.render('results', {
-        userGuess: userGuess,
-        correctAnswer: correctAnswer,
+        userGuess: req.body.guess,  // Show original input
+        correctAnswer: correctAnswers.join(", "), // Show all correct answers
         explanation: "Cats are small, carnivorous mammals that have been domesticated for thousands of years.",
         responseId: this.lastID
       });
