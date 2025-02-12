@@ -25,17 +25,19 @@ app.use(session({
 const db = new sqlite3.Database('quiz.db');
 
 // Create table for storing users (if it doesn't exist)
+// Changed "user_id" to "copr_section" to record the COPR section.
 db.serialize(() => {
-  db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, user_id TEXT, name TEXT, email TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)");
+  db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, copr_section TEXT, name TEXT, email TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)");
 });
 
 // Update the responses table to include a suggestion column
+// Changed "user_id" to "copr_section"
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS responses (
     id INTEGER PRIMARY KEY,
     guess TEXT,
     isCorrect BOOLEAN,
-    user_id TEXT,
+    copr_section TEXT,
     suggestion TEXT,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
@@ -53,7 +55,8 @@ app.get('/login', (req, res) => {
 
 // Handle login form submission
 app.post('/login', (req, res) => {
-  const { user_id, name, email, security_answer } = req.body;
+  // Change the field name from user_id to copr_section.
+  const { copr_section, name, email, security_answer } = req.body;
 
   // Check if the security answer is correct
   const correctSecurityAnswer = "Lee";  // Replace with the correct name of your department chairman
@@ -61,20 +64,20 @@ app.post('/login', (req, res) => {
     return res.send('<h2>Incorrect answer to the security question. Please try again.</h2>');
   }
 
-  // Store the user details in the database
-  db.run("INSERT INTO users (user_id, name, email) VALUES (?, ?, ?)", [user_id, name, email], function (err) {
+  // Store the user details in the database using the COPR section
+  db.run("INSERT INTO users (copr_section, name, email) VALUES (?, ?, ?)", [copr_section, name, email], function (err) {
     if (err) {
       console.log(err.message);
       return res.send("Error saving user details.");
     }
     console.log(`User logged in with ID ${this.lastID}`);
     
-    // Save user data in session
+    // Save user data in session, including the COPR section.
     req.session.user = {
-      id: this.lastID,  // The auto-generated database ID
-      user_id,          // The user ID from the form
-      name,             // The user's name
-      email             // The user's email
+      id: this.lastID,     // The auto-generated database ID
+      copr_section,        // The COPR section from the form
+      name,                // The user's name
+      email                // The user's email
     };
 
     // Redirect to the quiz page
@@ -118,13 +121,13 @@ app.post('/submit', (req, res) => {
   const correctAnswer = 'cat';  // Replace with your actual correct answer
   const isCorrect = userGuess.trim().toLowerCase() === correctAnswer.toLowerCase();
   
-  // Get the user from the session
+  // Get the user from the session and extract the COPR section
   const user = req.session.user;
-  const userId = user ? user.user_id : 'unknown';
+  const copr_section = user ? user.copr_section : 'unknown';
 
   // Save the response to the database and then render the results page
-  db.run("INSERT INTO responses (guess, isCorrect, user_id) VALUES (?, ?, ?)",
-    [userGuess, isCorrect, userId],
+  db.run("INSERT INTO responses (guess, isCorrect, copr_section) VALUES (?, ?, ?)",
+    [userGuess, isCorrect, copr_section],
     function (err) {
       if (err) {
         console.log(err.message);
@@ -160,4 +163,3 @@ app.post('/suggest', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-
