@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Submission Received</title>
+    <style>
+      body {
+        background-color: black;
+        color: white;
+      }
+      a {
+        color: lightblue;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Thank You for Participating in Case of the Month.</h1>
+    <p>Be sure to check the overall standings on the leaderboard!</p>
+    
+    <!-- Optional suggestion form -->
+    <h3>Suggest another diagnosis or case for Case of the Month (Free text or accession #)</h3>
+    <form action="/suggest" method="POST">
+      <!-- Hidden field to pass the response ID -->
+      <input type="hidden" name="responseId" value="<%= responseId %>">
+      <textarea name="suggestion" rows="3" cols="40" placeholder="Enter your suggestion here..."></textarea><br><br>
+      <button type="submit">Submit Suggestion</button>
+    </form>
+    
+    <p><a href="/quiz">Try another question</a></p>
+    <p><a href="/logout">Logout</a></p>
+  </body>
+</html>

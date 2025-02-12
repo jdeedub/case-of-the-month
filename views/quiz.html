@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Page</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+    }
+    /* Common style for quiz images */
+    .quiz-image {
+      width: 600px;      /* Adjust the width as needed */
+      max-width: 100%;   /* Ensure responsiveness */
+      height: auto;
+      margin-bottom: 20px; /* Adds spacing between images */
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to the Case of the Month!</h1>
+  
+  <!-- Display multiple quiz images -->
+  <img src="/images/quiz-image1.jpg" alt="Quiz Image 1" class="quiz-image">
+  <img src="/images/quiz-image2.jpg" alt="Quiz Image 2" class="quiz-image">
+  <img src="/images/quiz-image3.jpg" alt="Quiz Image 3" class="quiz-image">
+  
+  <!-- A place to show the countdown timer -->
+  <p id="timer">Time remaining: 03:00</p>
+  
+  <!-- Quiz form -->
+  <form id="quizForm" action="/submit" method="POST">
+    <label for="guess">What is your guess?</label><br>
+    <input type="text" id="guess" name="guess" placeholder="Enter your answer" required>
+    <br><br>
+    <button id="submitButton" type="submit">Submit Answer</button>
+  </form>
+
+  <!-- JavaScript for the countdown timer -->
+  <script>
+    let timeLeft = 180; // 180 seconds = 3 minutes
+
+    // Update the timer display every second
+    const timerInterval = setInterval(() => {
+      timeLeft--;
+
+      // Format minutes and seconds for display
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      document.getElementById("timer").innerText =
+        "Time remaining: " + (minutes < 10 ? "0" + minutes : minutes) + ":" +
+        (seconds < 10 ? "0" + seconds : seconds);
+
+      // When time runs out, disable the form
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        document.getElementById("guess").disabled = true;
+        document.getElementById("submitButton").disabled = true;
+        document.getElementById("timer").innerText = "Time's up!";
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
+
