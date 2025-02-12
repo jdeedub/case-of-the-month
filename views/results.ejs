@@ -1,32 +1,60 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
-    <title>Submission Received</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Results</title>
     <style>
-      body {
-        background-color: black;
-        color: white;
-      }
-      a {
-        color: lightblue;
-      }
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h1 {
+            color: gold;
+        }
+        .result {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+        a {
+            color: cyan;
+            font-size: 18px;
+        }
     </style>
-  </head>
-  <body>
-    <h1>Thank You for Participating in Case of the Month.</h1>
-    <p>Be sure to check the overall standings on the leaderboard!</p>
+</head>
+<body>
+    <h1>Quiz Results</h1>
+
+    <% if (result) { %>
+        <p class="result correct">✅ Your answer was correct!</p>
+    <% } else { %>
+        <p class="result incorrect">❌ Your answer was incorrect.</p>
+    <% } %>
+
+    <p><strong>Your Answer:</strong> <%= userGuess %></p>
+    <p><strong>Correct Answer:</strong> <%= correctAnswer %></p>
+    <p><strong>Explanation:</strong> <%= explanation %></p>
+
+    <br>
     
-    <!-- Optional suggestion form -->
-    <h3>Suggest another diagnosis or case for Case of the Month (Free text or accession #)</h3>
-    <form action="/suggest" method="POST">
-      <!-- Hidden field to pass the response ID -->
-      <input type="hidden" name="responseId" value="<%= responseId %>">
-      <textarea name="suggestion" rows="3" cols="40" placeholder="Enter your suggestion here..."></textarea><br><br>
-      <button type="submit">Submit Suggestion</button>
-    </form>
+    <!-- Link to the leaderboard -->
+    <p><a href="/leaderboard">🏆 View Leaderboard</a></p>
     
-    <p><a href="/quiz">Try another question</a></p>
-    <p><a href="/logout">Logout</a></p>
-  </body>
+    <br>
+    
+    <!-- Option to submit another answer -->
+    <p><a href="/quiz">Try Another Case</a></p>
+    
+    <!-- Logout link -->
+    <p><a href="/logout" style="color: red;">Logout</a></p>
+</body>
 </html>
