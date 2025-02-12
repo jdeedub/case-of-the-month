@@ -119,7 +119,15 @@ app.post('/submit', (req, res) => {
   const user = req.session.user;
   const copr_section = user ? user.copr_section : 'unknown';
   const name = user ? user.name : 'unknown';
-  const score = isCorrect ? 5 : 0; // 5 points for correct answers, 0 for wrong answers
+
+  // Default score for correct answers
+  let score = isCorrect ? 5 : 0;
+
+  // If the user is in Peds, IR, MSK, or Emergency, increase score to 6
+  const bonusSections = ["Peds", "IR", "MSK", "Emergency"];
+  if (isCorrect && bonusSections.includes(copr_section)) {
+    score = 6;
+  }
 
   // Save response
   db.run("INSERT INTO responses (guess, isCorrect, copr_section, name, score) VALUES (?, ?, ?, ?, ?)",
