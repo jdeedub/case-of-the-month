@@ -22,10 +22,10 @@
     <p>After logging in, you will have 3 minutes to review the images and provide your answer. You may search the web during that time. Only your first submission will be counted.</p>
 
     <form action="/login" method="POST">
-        <label for="user_id">User ID:</label><br>
+        <label for="user_id">Network ID:</label><br>
         <input type="text" id="user_id" name="user_id" required><br>
 
-        <label for="name">Name:</label><br>
+        <label for="name">Last Name:</label><br>
         <input type="text" id="name" name="name" required><br>
 
         <label for="email">Email:</label><br>
@@ -37,12 +37,12 @@
             <option value="MSK">MSK</option>
             <option value="Peds">Peds</option>
             <option value="IR">IR</option>
-            <option value="Mamma">Mamma</option>
+            <option value="Mammo">Mamma</option>
             <option value="Body">Body</option>
             <option value="Emergency">Emergency</option>
         </select><br>
 
-        <label for="security_answer">What is the first name of the department chairman?</label><br>
+        <label for="security_answer">Security: What is the first name of the department chairman?</label><br>
         <input type="text" id="security_answer" name="security_answer" required><br>
 
         <button type="submit">Login</button>
