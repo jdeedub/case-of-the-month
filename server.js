@@ -5,7 +5,7 @@ const sqlite3 = require('sqlite3').verbose();
 const app = express();
 app.set('view engine', 'ejs');  // Set the view engine AFTER creating the app
 
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Middleware to serve static files like images
 app.use(express.static('public'));
@@ -150,7 +150,10 @@ app.post('/suggest', (req, res) => {
   });
 });
 
-// Start the server
+// Use the port provided by Heroku, or default to 3000 if not available.
+const port = process.env.PORT || 3000;
+
+// Start the server and listen on the specified port.
 app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+  console.log(`Server is running on port ${port}`);
 });
