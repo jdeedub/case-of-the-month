@@ -26,7 +26,13 @@ const db = new sqlite3.Database('quiz.db');
 
 // Create table for storing users (if it doesn't exist)
 db.serialize(() => {
-  db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, copr_section TEXT, name TEXT, email TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)");
+  db.run(`CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY, 
+    copr_section TEXT, 
+    name TEXT, 
+    email TEXT, 
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
 });
 
 // Update the responses table to include COPR section & suggestion
@@ -89,9 +95,10 @@ app.get('/quiz', (req, res) => {
   if (!req.session.user) {
     return res.redirect('/login');
   }
-  if (!req.session.quizStartTime) {
-    req.session.quizStartTime = Date.now();
-  }
+
+  // Set the quiz start time when the user accesses the quiz
+  req.session.quizStartTime = Date.now();
+
   res.sendFile(__dirname + '/views/quiz.html');
 });
 
@@ -107,9 +114,17 @@ app.get('/logout', (req, res) => {
 
 // Route to handle quiz submissions
 app.post('/submit', (req, res) => {
+  if (!req.session.quizStartTime) {
+    return res.send("Error: Quiz start time is missing. Please restart the quiz.");
+  }
+
   const quizStartTime = req.session.quizStartTime;
   const now = Date.now();
-  if (!quizStartTime || (now - quizStartTime) > 180000) { // 3-minute limit
+  const timeElapsed = (now - quizStartTime) / 1000; // Convert to seconds
+
+  console.log(`Time Elapsed: ${timeElapsed} seconds`);
+
+  if (timeElapsed > 180) { // 180 seconds = 3 minutes
     return res.send("Time's up! You took too long to answer.");
   }
 
