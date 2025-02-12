@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h1 {
+            color: gold;
+        }
+        table {
+            width: 50%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            border: 2px solid white;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid white;
+        }
+        th {
+            background-color: darkblue;
+            color: white;
+        }
+        .top-performers {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏆 COPR Section Leaderboard 🏆</h1>
+    <p>Section scores are based on 5 randomly selected responses per month.</p>
+
+    <table>
+        <tr>
+            <th>Rank</th>
+            <th>COPR Section</th>
+            <th>Total Score</th>
+        </tr>
+        <% leaderboard.forEach((section, index) => { %>
+            <tr>
+                <td><%= index + 1 %></td>
+                <td><%= section.copr_section %></td>
+                <td><%= section.total_score %></td>
+            </tr>
+        <% }) %>
+    </table>
+
+    <div class="top-performers">
+        <h2>⭐ Top Individual Performers ⭐</h2>
+        <p>These individuals have answered the most cases correctly.</p>
+        <table>
+            <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>COPR Section</th>
+                <th>Correct Answers</th>
+            </tr>
+            <% topPerformers.forEach((performer, index) => { %>
+                <tr>
+                    <td><%= index + 1 %></td>
+                    <td><%= performer.name %></td>
+                    <td><%= performer.copr_section %></td>
+                    <td><%= performer.correct_count %></td>
+                </tr>
+            <% }) %>
+        </table>
+    </div>
+
+    <p><a href="/quiz" style="color: gold;">Return to Quiz</a></p>
+    <p><a href="/logout" style="color: red;">Logout</a></p>
+</body>
+</html>
