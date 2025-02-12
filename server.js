@@ -157,14 +157,15 @@ app.get('/leaderboard', (req, res) => {
     ORDER BY total_score DESC;
   `;
 
-  // Query to find the top consistent individual performers (all correct answers)
+  // Query to find the top **5** consistent individual performers (all correct answers)
   const individualSQL = `
     SELECT name, copr_section, COUNT(*) as correct_count
     FROM responses
     WHERE isCorrect = 1
     GROUP BY name, copr_section
     HAVING correct_count > 1  -- Only show individuals with multiple correct answers
-    ORDER BY correct_count DESC, name ASC;
+    ORDER BY correct_count DESC, name ASC
+    LIMIT 5;  -- LIMIT TO ONLY THE TOP 5 INDIVIDUAL PERFORMERS
   `;
 
   db.all(sectionSQL, [], (err, sectionRows) => {
@@ -179,10 +180,10 @@ app.get('/leaderboard', (req, res) => {
         return res.send("Error retrieving individual performer data.");
       }
 
-      // Render leaderboard with section scores and top performers
+      // Render leaderboard with section scores and **top 5 individual performers**
       res.render('leaderboard', {
         leaderboard: sectionRows,  // Section leaderboard
-        topPerformers: individualRows  // Individual recognitions
+        topPerformers: individualRows  // Only **top 5** performers
       });
     });
   });
