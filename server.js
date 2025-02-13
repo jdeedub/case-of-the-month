@@ -18,6 +18,7 @@ app.use(session({
 
 const db = new sqlite3.Database('quiz.db');
 
+// Create table for storing users
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY, 
@@ -28,6 +29,7 @@ db.serialize(() => {
   )`);
 });
 
+// Create table for storing responses
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS responses (
     id INTEGER PRIMARY KEY,
@@ -41,6 +43,7 @@ db.serialize(() => {
   )`);
 });
 
+// Create table for storing suggestions
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS suggestions (
     id INTEGER PRIMARY KEY,
@@ -167,6 +170,63 @@ app.post('/submit-suggestion', (req, res) => {
   });
 });
 
+// **Fixed Leaderboard Route**
+app.get('/leaderboard', (req, res) => {
+  const sectionSQL = `
+    SELECT copr_section, SUM(score) as total_score
+    FROM (
+        SELECT copr_section, score
+        FROM responses
+        WHERE copr_section IS NOT NULL
+        ORDER BY RANDOM()
+        LIMIT 5
+    ) 
+    GROUP BY copr_section
+    ORDER BY total_score DESC;
+  `;
+
+  const individualSQL = `
+    SELECT name, copr_section, COUNT(*) as correct_count
+    FROM responses
+    WHERE isCorrect = 1
+    GROUP BY name, copr_section
+    HAVING correct_count > 1
+    ORDER BY correct_count DESC, name ASC
+    LIMIT 5;
+  `;
+
+  db.all(sectionSQL, [], (err, sectionRows) => {
+    if (err) {
+      console.log(err.message);
+      return res.send("Error retrieving section leaderboard data.");
+    }
+
+    db.all(individualSQL, [], (err, individualRows) => {
+      if (err) {
+        console.log(err.message);
+        return res.send("Error retrieving individual performer data.");
+      }
+
+      res.render('leaderboard', {
+        leaderboard: sectionRows,
+        topPerformers: individualRows
+      });
+    });
+  });
+});
+
+// Handle graceful shutdown
+process.on('SIGINT', () => {
+  console.log("Shutting down server gracefully...");
+  process.exit();
+});
+
+process.on('SIGTERM', () => {
+  console.log("Shutting down server gracefully...");
+  process.exit();
+});
+
+// Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
