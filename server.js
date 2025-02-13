@@ -41,6 +41,16 @@ db.serialize(() => {
   )`);
 });
 
+// NEW: Table for storing user suggestions
+db.serialize(() => {
+  db.run(`CREATE TABLE IF NOT EXISTS suggestions (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER,
+    suggestion TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+});
+
 app.get('/', (req, res) => {
   res.redirect('/login');
 });
@@ -136,6 +146,26 @@ app.post('/submit', (req, res) => {
         correctAnswer: correctAnswers.join(", "), 
         explanation: explanation  
       });
+  });
+});
+
+// NEW: Route to handle user suggestions
+app.post('/submit-suggestion', (req, res) => {
+  const suggestionText = req.body.suggestion;
+  const user = req.session.user;
+
+  if (!user) {
+    return res.send("Error: User session not found.");
+  }
+
+  db.run("INSERT INTO suggestions (user_id, suggestion) VALUES (?, ?)", 
+    [user.id, suggestionText], 
+    function (err) {
+      if (err) {
+        console.log(err.message);
+        return res.send("There was an error saving your suggestion.");
+      }
+      res.send("<h2>Thank you for your suggestion! It has been recorded.</h2><br><a href='/leaderboard'>Go to Leaderboard</a>");
   });
 });
 
