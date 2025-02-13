@@ -3,7 +3,7 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
-app.set('view engine', 'ejs');  
+app.set('view engine', 'ejs');
 
 const port = process.env.PORT || 3000;
 
@@ -99,7 +99,7 @@ app.post('/submit', (req, res) => {
 
   const quizStartTime = req.session.quizStartTime;
   const now = Date.now();
-  const timeElapsed = (now - quizStartTime) / 1000; 
+  const timeElapsed = (now - quizStartTime) / 1000;
 
   if (timeElapsed > 180) {
     return res.send("Time's up! You took too long to answer.");
@@ -130,105 +130,13 @@ app.post('/submit', (req, res) => {
         return res.send("There was an error saving your response.");
       }
 
-      const sectionSQL = `
-        SELECT copr_section, SUM(score) as total_score
-        FROM (
-            SELECT copr_section, score
-            FROM responses
-            WHERE copr_section IS NOT NULL
-            ORDER BY RANDOM()
-            LIMIT 5
-        ) 
-        GROUP BY copr_section
-        ORDER BY total_score DESC;
-      `;
-
-      const individualSQL = `
-        SELECT name, copr_section, COUNT(*) as correct_count
-        FROM responses
-        WHERE isCorrect = 1
-        GROUP BY name, copr_section
-        ORDER BY correct_count DESC, name ASC
-        LIMIT 5;
-      `;
-
-      db.all(sectionSQL, [], (err, leaderboardRows) => {
-        if (err) {
-          console.log(err.message);
-          return res.send("Error retrieving leaderboard data.");
-        }
-
-        db.all(individualSQL, [], (err, topPerformersRows) => {
-          if (err) {
-            console.log(err.message);
-            return res.send("Error retrieving top performers data.");
-          }
-
-          res.render('results', {
-            result: isCorrect,  
-            userGuess: req.body.guess,
-            correctAnswer: correctAnswers.join(", "), 
-            explanation: explanation,  
-            responseId: this.lastID,
-            leaderboard: leaderboardRows,
-            topPerformers: topPerformersRows 
-          });
-        });
+      res.render('results', {
+        result: isCorrect,  
+        userGuess: req.body.guess,  
+        correctAnswer: correctAnswers.join(", "), 
+        explanation: explanation  
       });
   });
-});
-
-app.get('/leaderboard', (req, res) => {
-  const sectionSQL = `
-    SELECT copr_section, SUM(score) as total_score
-    FROM (
-        SELECT copr_section, score
-        FROM responses
-        WHERE copr_section IS NOT NULL
-        ORDER BY RANDOM()
-        LIMIT 5  
-    ) 
-    GROUP BY copr_section
-    ORDER BY total_score DESC;
-  `;
-
-  const individualSQL = `
-    SELECT name, copr_section, COUNT(*) as correct_count
-    FROM responses
-    WHERE isCorrect = 1
-    GROUP BY name, copr_section
-    ORDER BY correct_count DESC, name ASC
-    LIMIT 5;
-  `;
-
-  db.all(sectionSQL, [], (err, sectionRows) => {
-    if (err) {
-      console.log(err.message);
-      return res.send("Error retrieving section leaderboard data.");
-    }
-
-    db.all(individualSQL, [], (err, individualRows) => {
-      if (err) {
-        console.log(err.message);
-        return res.send("Error retrieving individual performer data.");
-      }
-
-      res.render('leaderboard', {
-        leaderboard: sectionRows,  
-        topPerformers: individualRows  
-      });
-    });
-  });
-});
-
-process.on('SIGINT', () => {
-  console.log("Shutting down server gracefully...");
-  process.exit();
-});
-
-process.on('SIGTERM', () => {
-  console.log("Shutting down server gracefully...");
-  process.exit();
 });
 
 app.listen(port, () => {
