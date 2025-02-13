@@ -148,7 +148,6 @@ app.post('/submit', (req, res) => {
   });
 });
 
-// NEW: Route to handle user suggestions
 app.post('/submit-suggestion', (req, res) => {
   const suggestionText = req.body.suggestion;
   const user = req.session.user;
@@ -165,51 +164,6 @@ app.post('/submit-suggestion', (req, res) => {
         return res.send("There was an error saving your suggestion.");
       }
       res.send("<h2>Thank you for your suggestion! It has been recorded.</h2><br><a href='/leaderboard'>Go to Leaderboard</a>");
-  });
-});
-
-// **Leaderboard Route**
-app.get('/leaderboard', (req, res) => {
-  const sectionSQL = `
-    SELECT copr_section, SUM(score) as total_score
-    FROM (
-        SELECT copr_section, score
-        FROM responses
-        WHERE copr_section IS NOT NULL
-        ORDER BY RANDOM()
-        LIMIT 5
-    ) 
-    GROUP BY copr_section
-    ORDER BY total_score DESC;
-  `;
-
-  const individualSQL = `
-    SELECT name, copr_section, COUNT(*) as correct_count
-    FROM responses
-    WHERE isCorrect = 1
-    GROUP BY name, copr_section
-    HAVING correct_count > 1
-    ORDER BY correct_count DESC, name ASC
-    LIMIT 5;
-  `;
-
-  db.all(sectionSQL, [], (err, sectionRows) => {
-    if (err) {
-      console.log(err.message);
-      return res.send("Error retrieving section leaderboard data.");
-    }
-
-    db.all(individualSQL, [], (err, individualRows) => {
-      if (err) {
-        console.log(err.message);
-        return res.send("Error retrieving individual performer data.");
-      }
-
-      res.render('leaderboard', {
-        leaderboard: sectionRows,
-        topPerformers: individualRows
-      });
-    });
   });
 });
 
