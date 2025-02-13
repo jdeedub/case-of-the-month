@@ -8,13 +8,56 @@
     body {
       background-color: black;
       color: white;
+      text-align: center;
+      font-family: Arial, sans-serif;
     }
-    /* Common style for quiz images */
+
+    /* Style for quiz images */
     .quiz-image {
-      width: 600px;      /* Adjust the width as needed */
-      max-width: 100%;   /* Ensure responsiveness */
+      width: 500px;      /* Adjusted width for a balanced size */
+      max-width: 100%;   /* Ensures responsiveness */
       height: auto;
       margin-bottom: 20px; /* Adds spacing between images */
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Centering the timer */
+    #timer {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    /* Styling the quiz form */
+    form {
+      margin-top: 20px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 16px;
+      width: 80%;
+      max-width: 400px;
+      display: block;
+      margin: 10px auto;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: block;
+      margin: 10px auto;
+    }
+
+    button:disabled {
+      background-color: gray;
+      cursor: not-allowed;
     }
   </style>
 </head>
@@ -25,14 +68,14 @@
   <img src="/images/quiz-image1.jpg" alt="Image 1" class="quiz-image">
   <img src="/images/quiz-image2.jpg" alt="Image 2" class="quiz-image">
   
-  <!-- A place to show the countdown timer -->
+  <!-- Countdown timer -->
   <p id="timer">Time remaining: 03:00</p>
   
   <!-- Quiz form -->
   <form id="quizForm" action="/submit" method="POST">
     <label for="guess">What is your guess?</label><br>
     <input type="text" id="guess" name="guess" placeholder="Enter your answer" required>
-    <br><br>
+    <br>
     <button id="submitButton" type="submit">Submit Answer</button>
   </form>
 
@@ -62,4 +105,5 @@
   </script>
 </body>
 </html>
+
 
