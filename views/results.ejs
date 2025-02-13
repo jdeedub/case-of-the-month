@@ -107,12 +107,16 @@
         </tr>
       </thead>
       <tbody>
-        <% leaderboard.forEach(section => { %>
-          <tr>
-            <td><%= section.copr_section %></td>
-            <td><%= section.total_score %></td>
-          </tr>
-        <% }); %>
+        <% if (leaderboard.length > 0) { %>
+          <% leaderboard.forEach(section => { %>
+            <tr>
+              <td><%= section.copr_section %></td>
+              <td><%= section.total_score %></td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr><td colspan="2">No scores available yet.</td></tr>
+        <% } %>
       </tbody>
     </table>
   </div>
@@ -129,19 +133,23 @@
         </tr>
       </thead>
       <tbody>
-        <% topPerformers.forEach(person => { %>
-          <tr>
-            <td><%= person.name %></td>
-            <td><%= person.copr_section %></td>
-            <td><%= person.correct_count %></td>
-          </tr>
-        <% }); %>
+        <% if (topPerformers.length > 0) { %>
+          <% topPerformers.forEach(person => { %>
+            <tr>
+              <td><%= person.name %></td>
+              <td><%= person.copr_section %></td>
+              <td><%= person.correct_count %></td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr><td colspan="3">No individual scores available yet.</td></tr>
+        <% } %>
       </tbody>
     </table>
   </div>
 
   <!-- Button to return to the quiz page -->
   <a href="/quiz" class="button">Back to Quiz</a>
-
 </body>
 </html>
+
