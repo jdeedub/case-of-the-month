@@ -64,7 +64,7 @@ app.post('/login', (req, res) => {
   const { copr_section, name, email, security_answer } = req.body;
 
   // Check if the security answer is correct
-  const correctSecurityAnswer = "Lee";  // Replace with the correct chairman's name
+  const correctSecurityAnswer = "Lee"; 
   if (security_answer.trim().toLowerCase() !== correctSecurityAnswer.toLowerCase()) {
     return res.send('<h2>Incorrect answer to the security question. Please try again.</h2>');
   }
@@ -78,12 +78,7 @@ app.post('/login', (req, res) => {
     console.log(`User logged in with ID ${this.lastID}`);
     
     // Save user data in session
-    req.session.user = {
-      id: this.lastID,
-      copr_section,
-      name,
-      email
-    };
+    req.session.user = { id: this.lastID, copr_section, name, email };
 
     // Redirect to the quiz page
     res.redirect('/quiz');
@@ -92,150 +87,121 @@ app.post('/login', (req, res) => {
 
 // Serve the quiz page (protected by session check)
 app.get('/quiz', (req, res) => {
-  if (!req.session.user) {
-    return res.redirect('/login');
-  }
+  if (!req.session.user) return res.redirect('/login');
 
-  // Set the quiz start time when the user accesses the quiz
   req.session.quizStartTime = Date.now();
-
   res.sendFile(__dirname + '/views/quiz.html');
 });
 
 // Logout route
 app.get('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.send("Error logging out.");
-    }
+  req.session.destroy(err => {
+    if (err) return res.send("Error logging out.");
     res.redirect('/login');
   });
 });
 
-// Route to handle quiz submissions
+// **🔹 Updated Route to Handle Quiz Submissions**
 app.post('/submit', (req, res) => {
-  if (!req.session.quizStartTime) {
-    return res.send("Error: Quiz start time is missing. Please restart the quiz.");
-  }
+  if (!req.session.quizStartTime) return res.send("Error: Quiz start time is missing. Please restart the quiz.");
 
   const quizStartTime = req.session.quizStartTime;
   const now = Date.now();
-  const timeElapsed = (now - quizStartTime) / 1000; // Convert to seconds
+  const timeElapsed = (now - quizStartTime) / 1000; 
 
   console.log(`Time Elapsed: ${timeElapsed} seconds`);
+  if (timeElapsed > 180) return res.send("Time's up! You took too long to answer.");
 
-  if (timeElapsed > 180) { // 180 seconds = 3 minutes
-    return res.send("Time's up! You took too long to answer.");
-  }
-
-  const userGuess = req.body.guess.trim().toLowerCase(); // Normalize user input
-  const correctAnswers = ["cat", "kitty", "feline"]; // List of acceptable answers
-  const isCorrect = correctAnswers.includes(userGuess); // Check if response is correct
+  const userGuess = req.body.guess.trim().toLowerCase(); 
+  const correctAnswers = ["cat", "kitty", "feline"]; 
+  const isCorrect = correctAnswers.includes(userGuess);
 
   const user = req.session.user;
   const copr_section = user ? user.copr_section : 'unknown';
   const name = user ? user.name : 'unknown';
 
-  // Default score for correct answers
   let score = isCorrect ? 5 : 0;
-
-  // If the user is in Peds, IR, MSK, or Emergency, increase score to 6
   const bonusSections = ["Peds", "IR", "MSK", "Emergency"];
-  if (isCorrect && bonusSections.includes(copr_section)) {
-    score = 6;
-  }
+  if (isCorrect && bonusSections.includes(copr_section)) score = 6;
 
-  // Save response
+  // **Save Response & Fetch Leaderboard**
   db.run("INSERT INTO responses (guess, isCorrect, copr_section, name, score) VALUES (?, ?, ?, ?, ?)",
     [userGuess, isCorrect, copr_section, name, score],
     function (err) {
       if (err) {
         console.log(err.message);
-        return res.send("There was an error saving your response.");
+        return res.send("Error saving response.");
       }
       console.log(`Response saved with ID ${this.lastID}`);
 
-      // Render the results page with `result` included
-      res.render('results', {
-        result: isCorrect,  // <-- FIXED: Pass the correct result
-        userGuess: req.body.guess,  // Show original input
-        correctAnswer: correctAnswers.join(", "), // Show all correct answers
-        explanation: "Cats are small, carnivorous mammals that have been domesticated for thousands of years.",
-        responseId: this.lastID
+      const sectionSQL = `
+        SELECT copr_section, SUM(score) as total_score
+        FROM (
+            SELECT copr_section, score
+            FROM responses
+            WHERE copr_section IS NOT NULL
+            ORDER BY RANDOM()
+            LIMIT 5
+        ) 
+        GROUP BY copr_section
+        ORDER BY total_score DESC;
+      `;
+
+      const individualSQL = `
+        SELECT name, copr_section, COUNT(*) as correct_count
+        FROM responses
+        WHERE isCorrect = 1
+        GROUP BY name, copr_section
+        HAVING correct_count > 1
+        ORDER BY correct_count DESC, name ASC
+        LIMIT 5;
+      `;
+
+      db.all(sectionSQL, [], (err, sectionRows) => {
+        if (err) return res.send("Error retrieving leaderboard data.");
+
+        db.all(individualSQL, [], (err, individualRows) => {
+          if (err) return res.send("Error retrieving individual performer data.");
+
+          // **Pass leaderboard data to results page**
+          res.render('results', {
+            result: isCorrect,
+            userGuess: req.body.guess,
+            correctAnswer: correctAnswers.join(", "),
+            explanation: "Cats are small, carnivorous mammals that have been domesticated for thousands of years.",
+            responseId: this.lastID,
+            leaderboard: sectionRows,
+            topPerformers: individualRows
+          });
+        });
       });
   });
 });
 
-// **Leaderboard Route - COPR Sections (Top 5 Responses Counted, Correct or Incorrect)**
+// **Leaderboard Route**
 app.get('/leaderboard', (req, res) => {
-  // Query to calculate total score for each COPR section (top 5 responses counted, including wrong answers)
-  const sectionSQL = `
-    SELECT copr_section, SUM(score) as total_score
-    FROM (
-        SELECT copr_section, score
-        FROM responses
-        WHERE copr_section IS NOT NULL
-        ORDER BY RANDOM()
-        LIMIT 5  -- Only count the top 5 highest scores per section, including wrong answers
-    ) 
-    GROUP BY copr_section
-    ORDER BY total_score DESC;
-  `;
+  db.all("SELECT copr_section, SUM(score) as total_score FROM responses GROUP BY copr_section ORDER BY total_score DESC", [], (err, sectionRows) => {
+    if (err) return res.send("Error retrieving section leaderboard data.");
 
-  // Query to find the top **5** consistent individual performers (all correct answers)
-  const individualSQL = `
-    SELECT name, copr_section, COUNT(*) as correct_count
-    FROM responses
-    WHERE isCorrect = 1
-    GROUP BY name, copr_section
-    HAVING correct_count > 1  -- Only show individuals with multiple correct answers
-    ORDER BY correct_count DESC, name ASC
-    LIMIT 5;  -- LIMIT TO ONLY THE TOP 5 INDIVIDUAL PERFORMERS
-  `;
+    db.all("SELECT name, copr_section, COUNT(*) as correct_count FROM responses WHERE isCorrect = 1 GROUP BY name, copr_section HAVING correct_count > 1 ORDER BY correct_count DESC, name ASC LIMIT 5;", [], (err, individualRows) => {
+      if (err) return res.send("Error retrieving individual performer data.");
 
-  db.all(sectionSQL, [], (err, sectionRows) => {
-    if (err) {
-      console.log(err.message);
-      return res.send("Error retrieving section leaderboard data.");
-    }
-
-    db.all(individualSQL, [], (err, individualRows) => {
-      if (err) {
-        console.log(err.message);
-        return res.send("Error retrieving individual performer data.");
-      }
-
-      // Render leaderboard with section scores and **top 5 individual performers**
-      res.render('leaderboard', {
-        leaderboard: sectionRows,  // Section leaderboard
-        topPerformers: individualRows  // Only **top 5** performers
-      });
+      res.render('leaderboard', { leaderboard: sectionRows, topPerformers: individualRows });
     });
   });
 });
 
-// Route to handle suggestions
+// **Handle Suggestions**
 app.post('/suggest', (req, res) => {
-  const { responseId, suggestion } = req.body;
-  db.run("UPDATE responses SET suggestion = ? WHERE id = ?", [suggestion, responseId], function(err) {
-    if (err) {
-      console.log(err.message);
-      return res.send("There was an error saving your suggestion.");
-    }
+  db.run("UPDATE responses SET suggestion = ? WHERE id = ?", [req.body.suggestion, req.body.responseId], function(err) {
+    if (err) return res.send("Error saving suggestion.");
     res.send("Thank you for your suggestion!");
   });
 });
-process.on('SIGINT', () => {
-  console.log("Shutting down server gracefully...");
-  process.exit();
-});
 
-process.on('SIGTERM', () => {
-  console.log("Shutting down server gracefully...");
-  process.exit();
-});
+// **Graceful Shutdown**
+process.on('SIGINT', () => { console.log("Shutting down server..."); process.exit(); });
+process.on('SIGTERM', () => { console.log("Shutting down server..."); process.exit(); });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+// **Start the Server**
+app.listen(port, () => console.log(`Server running on port ${port}`));
