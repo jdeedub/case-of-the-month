@@ -120,6 +120,8 @@ app.post('/submit', (req, res) => {
     score = 6;
   }
 
+  const explanation = "Cats are small, carnivorous mammals that have been domesticated for thousands of years. They are known for their agility, independence, and playful behavior.";
+
   db.run("INSERT INTO responses (guess, isCorrect, copr_section, name, score) VALUES (?, ?, ?, ?, ?)",
     [userGuess, isCorrect, copr_section, name, score],
     function (err) {
@@ -163,10 +165,10 @@ app.post('/submit', (req, res) => {
           }
 
           res.render('results', {
-            result: isCorrect,
+            result: isCorrect,  
             userGuess: req.body.guess,
-            correctAnswer: correctAnswers.join(", "),
-            explanation: "Cats are small, carnivorous mammals that have been domesticated for thousands of years.",
+            correctAnswer: correctAnswers.join(", "), 
+            explanation: explanation,  
             responseId: this.lastID,
             leaderboard: leaderboardRows,
             topPerformers: topPerformersRows 
