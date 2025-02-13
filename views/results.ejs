@@ -3,153 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Leaderboard</title>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  
+  <title>Quiz Results</title>
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(to right, #111, #222); /* Dark gradient */
+      background-color: black;
       color: white;
       text-align: center;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-
-    h1 {
-      font-size: 28px;
-      font-weight: 600;
-      margin-bottom: 20px;
-    }
-
-    /* Leaderboard container */
-    .leaderboard-container {
-      background: rgba(255, 255, 255, 0.1);
+      font-family: Arial, sans-serif;
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
-      max-width: 700px;
-      width: 90%;
-      margin-bottom: 20px;
     }
-
-    /* Table styling */
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    .result {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    .correct {
+      color: lightgreen;
+    }
+    .incorrect {
+      color: red;
+    }
+    .explanation {
       margin-top: 15px;
-    }
-
-    th, td {
-      padding: 12px;
+      font-size: 18px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
       text-align: left;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    th {
-      background: rgba(255, 255, 255, 0.2);
-      font-weight: 600;
-    }
-
-    tr:hover {
+      padding: 15px;
       background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
     }
-
-    /* Button styling */
     .button {
       padding: 12px 24px;
-      font-size: 16px;
       background-color: #17a2b8;
       color: white;
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      transition: background 0.3s;
+      font-size: 16px;
+      margin-top: 20px;
       text-decoration: none;
       display: inline-block;
-      margin-top: 20px;
     }
-
     .button:hover {
       background-color: #138496;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      .leaderboard-container {
-        width: 95%;
-      }
-      th, td {
-        padding: 10px;
-        font-size: 14px;
-      }
     }
   </style>
 </head>
 <body>
-  <h1>Leaderboard</h1>
+  <h1>Quiz Results</h1>
 
-  <!-- Section Leaderboard -->
-  <div class="leaderboard-container">
-    <h2>🏆 COPR Section Scores</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Section</th>
-          <th>Total Score</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (leaderboard.length > 0) { %>
-          <% leaderboard.forEach(section => { %>
-            <tr>
-              <td><%= section.copr_section %></td>
-              <td><%= section.total_score %></td>
-            </tr>
-          <% }); %>
-        <% } else { %>
-          <tr><td colspan="2">No scores available yet.</td></tr>
-        <% } %>
-      </tbody>
-    </table>
+  <% if (result) { %>
+    <p class="result correct">✅ Correct! Your answer was <strong><%= userGuess %></strong></p>
+  <% } else { %>
+    <p class="result incorrect">❌ Incorrect. The correct answer was <strong><%= correctAnswer %></strong></p>
+  <% } %>
+
+  <div class="explanation">
+    <p><%= explanation %></p>
   </div>
 
-  <!-- Individual Top Performers -->
-  <div class="leaderboard-container">
-    <h2>⭐ Top 5 Individual Performers</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Section</th>
-          <th>Correct Answers</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (topPerformers.length > 0) { %>
-          <% topPerformers.forEach(person => { %>
-            <tr>
-              <td><%= person.name %></td>
-              <td><%= person.copr_section %></td>
-              <td><%= person.correct_count %></td>
-            </tr>
-          <% }); %>
-        <% } else { %>
-          <tr><td colspan="3">No individual scores available yet.</td></tr>
-        <% } %>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Button to return to the quiz page -->
-  <a href="/quiz" class="button">Back to Quiz</a>
+  <a href="/quiz" class="button">Try Again</a>
+  <a href="/leaderboard" class="button">View Leaderboard</a>
 </body>
 </html>
-
