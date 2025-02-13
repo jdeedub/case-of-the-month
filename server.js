@@ -155,8 +155,9 @@ app.post('/submit', (req, res) => {
       }
       console.log(`Response saved with ID ${this.lastID}`);
 
-      // Render the results page
+      // Render the results page with `result` included
       res.render('results', {
+        result: isCorrect,  // <-- FIXED: Pass the correct result
         userGuess: req.body.guess,  // Show original input
         correctAnswer: correctAnswers.join(", "), // Show all correct answers
         explanation: "Cats are small, carnivorous mammals that have been domesticated for thousands of years.",
@@ -223,6 +224,15 @@ app.post('/suggest', (req, res) => {
     }
     res.send("Thank you for your suggestion!");
   });
+});
+process.on('SIGINT', () => {
+  console.log("Shutting down server gracefully...");
+  process.exit();
+});
+
+process.on('SIGTERM', () => {
+  console.log("Shutting down server gracefully...");
+  process.exit();
 });
 
 // Start the server
