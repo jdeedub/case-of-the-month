@@ -18,7 +18,7 @@ app.use(session({
 
 const db = new sqlite3.Database('quiz.db');
 
-// Create table for storing users
+// Create necessary tables if they don't exist
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY, 
@@ -27,10 +27,7 @@ db.serialize(() => {
     email TEXT, 
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
-});
 
-// Create table for storing responses
-db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS responses (
     id INTEGER PRIMARY KEY,
     guess TEXT,
@@ -38,13 +35,9 @@ db.serialize(() => {
     copr_section TEXT,
     name TEXT,
     score INTEGER DEFAULT 0,
-    suggestion TEXT,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
-});
 
-// Create table for storing suggestions
-db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS suggestions (
     id INTEGER PRIMARY KEY,
     user_id INTEGER,
@@ -53,16 +46,23 @@ db.serialize(() => {
   )`);
 });
 
+// Redirect root to login
 app.get('/', (req, res) => {
   res.redirect('/login');
 });
 
+// Serve the login page
 app.get('/login', (req, res) => {
   res.sendFile(__dirname + '/views/login.html');
 });
 
+// Handle login submission
 app.post('/login', (req, res) => {
   const { copr_section, name, email, security_answer } = req.body;
+
+  if (!copr_section) {
+    return res.send('<h2>Please select a COPR section before proceeding.</h2>');
+  }
 
   const correctSecurityAnswer = "Lee";  
   if (security_answer.trim().toLowerCase() !== correctSecurityAnswer.toLowerCase()) {
@@ -74,7 +74,7 @@ app.post('/login', (req, res) => {
       console.log(err.message);
       return res.send("Error saving user details.");
     }
-    
+
     req.session.user = {
       id: this.lastID,
       copr_section,
@@ -86,6 +86,7 @@ app.post('/login', (req, res) => {
   });
 });
 
+// Serve the quiz page
 app.get('/quiz', (req, res) => {
   if (!req.session.user) {
     return res.redirect('/login');
@@ -95,6 +96,7 @@ app.get('/quiz', (req, res) => {
   res.sendFile(__dirname + '/views/quiz.html');
 });
 
+// Handle logout
 app.get('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -104,6 +106,7 @@ app.get('/logout', (req, res) => {
   });
 });
 
+// Handle quiz submission
 app.post('/submit', (req, res) => {
   if (!req.session.quizStartTime) {
     return res.send("Error: Quiz start time is missing. Please restart the quiz.");
@@ -122,17 +125,18 @@ app.post('/submit', (req, res) => {
   const isCorrect = correctAnswers.includes(userGuess); 
 
   const user = req.session.user;
-  const copr_section = user ? user.copr_section : 'unknown';
-  const name = user ? user.name : 'unknown';
+  if (!user) {
+    return res.send("Error: User session not found.");
+  }
+
+  const copr_section = user.copr_section;
+  const name = user.name;
 
   let score = isCorrect ? 5 : 0;
-
   const bonusSections = ["Peds", "IR", "MSK", "Emergency"];
   if (isCorrect && bonusSections.includes(copr_section)) {
     score = 6;
   }
-
-  const explanation = "Cats are small, carnivorous mammals that have been domesticated for thousands of years. They are known for their agility, independence, and playful behavior.";
 
   db.run("INSERT INTO responses (guess, isCorrect, copr_section, name, score) VALUES (?, ?, ?, ?, ?)",
     [userGuess, isCorrect, copr_section, name, score],
@@ -142,15 +146,11 @@ app.post('/submit', (req, res) => {
         return res.send("There was an error saving your response.");
       }
 
-      res.render('results', {
-        result: isCorrect,  
-        userGuess: req.body.guess,  
-        correctAnswer: correctAnswers.join(", "), 
-        explanation: explanation  
-      });
+      res.render('results');  // Only show submission confirmation
   });
 });
 
+// Handle user suggestions
 app.post('/submit-suggestion', (req, res) => {
   const suggestionText = req.body.suggestion;
   const user = req.session.user;
@@ -170,7 +170,7 @@ app.post('/submit-suggestion', (req, res) => {
   });
 });
 
-// **Fixed Leaderboard Route**
+// Leaderboard route
 app.get('/leaderboard', (req, res) => {
   const sectionSQL = `
     SELECT copr_section, SUM(score) as total_score
@@ -215,7 +215,7 @@ app.get('/leaderboard', (req, res) => {
   });
 });
 
-// Handle graceful shutdown
+// Graceful shutdown handling
 process.on('SIGINT', () => {
   console.log("Shutting down server gracefully...");
   process.exit();

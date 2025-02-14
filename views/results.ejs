@@ -3,82 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz Results</title>
+  <title>Quiz Submission</title>
   <style>
     body {
+      font-family: 'Arial', sans-serif;
       background-color: black;
       color: white;
       text-align: center;
-      font-family: Arial, sans-serif;
-      padding: 20px;
+      padding: 50px;
     }
-    .result {
-      font-size: 24px;
-      font-weight: bold;
-      margin-top: 20px;
-    }
-    .correct {
-      color: lightgreen;
-    }
-    .incorrect {
-      color: red;
-    }
-    .explanation {
-      margin-top: 15px;
-      font-size: 18px;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-      text-align: left;
-      padding: 15px;
+    .message-box {
       background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
       border-radius: 8px;
+      display: inline-block;
+      margin: 20px auto;
     }
     .button {
-      padding: 12px 24px;
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
       background-color: #17a2b8;
       color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      margin-top: 20px;
       text-decoration: none;
-      display: inline-block;
+      border-radius: 5px;
     }
     .button:hover {
       background-color: #138496;
     }
-    textarea {
-      width: 80%;
-      height: 80px;
-      margin-top: 20px;
-      padding: 10px;
-      font-size: 16px;
-    }
   </style>
 </head>
 <body>
-  <h1>Quiz Results</h1>
 
-  <% if (result) { %>
-    <p class="result correct">✅ Correct! Your answer was <strong><%= userGuess %></strong></p>
-  <% } else { %>
-    <p class="result incorrect">❌ Incorrect. The correct answer was <strong><%= correctAnswer %></strong></p>
-  <% } %>
-
-  <div class="explanation">
-    <p><%= explanation %></p>
+  <div class="message-box">
+    <h1>Submission Recorded ✅</h1>
+    <p>Your response has been recorded! Stay tuned for the solution.</p>
+    <a href="/leaderboard" class="button">View Leaderboard</a>
   </div>
 
-  <!-- Suggestion Form -->
-  <h2>Suggest a Case for Case of the Month</h2>
-  <form action="/submit-suggestion" method="POST">
-    <textarea name="suggestion" placeholder="Enter a diagnosis or accession number"></textarea>
-    <br>
-    <button class="button" type="submit">Submit Suggestion</button>
-  </form>
-
-  <a href="/leaderboard" class="button">View Leaderboard</a>
 </body>
 </html>
