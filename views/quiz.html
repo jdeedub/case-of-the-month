@@ -3,48 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Case of the Month</title>
-  
-  <!-- Google Fonts for Modern Typography -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  
+  <title>Quiz Page</title>
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(to right, #111, #222); /* Dark gradient */
+      background-color: black;
       color: white;
       text-align: center;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh; /* Ensure everything fits on screen */
+      font-family: Arial, sans-serif;
+      padding: 10px;
     }
 
     h1 {
-      font-size: 28px;
-      font-weight: 600;
+      font-size: 24px;
       margin-bottom: 15px;
     }
 
-    /* Container to keep images side by side */
+    /* Container for quiz images */
     .image-container {
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
       align-items: center;
-      gap: 15px; /* Space between images */
-      max-width: 90%;
-      flex-wrap: wrap; /* Ensures images wrap on smaller screens */
+      gap: 10px;
+      max-width: 100%;
     }
 
-    /* Quiz Images - Side by Side */
+    /* Styling for images */
     .quiz-image {
-      width: 45%; /* Each image takes 45% of the width */
-      max-width: 400px; /* Prevents them from getting too large */
+      width: 100%;
+      max-width: 400px;
       border-radius: 8px;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+      box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.2);
       transition: transform 0.3s ease-in-out;
     }
 
@@ -55,12 +44,12 @@
     /* Timer & Form Section */
     .quiz-container {
       background: rgba(255, 255, 255, 0.1);
-      padding: 20px;
+      padding: 15px;
       border-radius: 10px;
       box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
-      max-width: 500px;
+      max-width: 400px;
       width: 90%;
-      margin-top: 20px;
+      margin: 20px auto;
     }
 
     /* Timer Style */
@@ -78,8 +67,8 @@
     input[type="text"] {
       padding: 12px;
       font-size: 16px;
-      width: 80%;
-      max-width: 400px;
+      width: 100%;
+      max-width: 350px;
       border: none;
       border-radius: 5px;
       background: rgba(255, 255, 255, 0.2);
@@ -93,17 +82,19 @@
       color: rgba(255, 255, 255, 0.7);
     }
 
-    /* Modern Button */
+    /* Submit Button */
     button {
       padding: 12px 24px;
       font-size: 18px;
-      background-color: #17a2b8; /* Teal medical theme */
+      background-color: #17a2b8;
       color: white;
       border: none;
       border-radius: 6px;
       cursor: pointer;
       transition: background 0.3s;
       margin-top: 10px;
+      width: 100%;
+      max-width: 350px;
     }
 
     button:hover {
@@ -115,13 +106,13 @@
       cursor: not-allowed;
     }
 
-    /* Make sure everything stays within view */
+    /* Mobile-Friendly Adjustments */
     @media (max-width: 768px) {
       .image-container {
-        flex-direction: column;
+        flex-direction: column; /* Stack images vertically */
       }
       .quiz-image {
-        width: 90%; /* Adjust image size for smaller screens */
+        width: 100%; /* Full width for smaller screens */
       }
     }
   </style>
@@ -129,10 +120,11 @@
 <body>
   <h1>Welcome to the Case of the Month!</h1>
 
-  <!-- Image container for side-by-side display -->
+  <!-- Image container for mobile-friendly display -->
   <div class="image-container">
     <img src="/images/quiz-image1.jpg" alt="Quiz Image 1" class="quiz-image">
     <img src="/images/quiz-image2.jpg" alt="Quiz Image 2" class="quiz-image">
+    <img src="/images/quiz-image3.jpg" alt="Quiz Image 3" class="quiz-image">
   </div>
 
   <!-- Countdown timer and form -->
@@ -149,20 +141,17 @@
 
   <!-- JavaScript for the countdown timer -->
   <script>
-    let timeLeft = 180; // 180 seconds = 3 minutes
+    let timeLeft = 180;
 
-    // Update the timer display every second
     const timerInterval = setInterval(() => {
       timeLeft--;
 
-      // Format minutes and seconds for display
       const minutes = Math.floor(timeLeft / 60);
       const seconds = timeLeft % 60;
       document.getElementById("timer").innerText =
         "Time remaining: " + (minutes < 10 ? "0" + minutes : minutes) + ":" +
         (seconds < 10 ? "0" + seconds : seconds);
 
-      // When time runs out, disable the form
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         document.getElementById("guess").disabled = true;
@@ -173,6 +162,3 @@
   </script>
 </body>
 </html>
-
-
-
