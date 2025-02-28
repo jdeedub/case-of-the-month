@@ -121,7 +121,7 @@ app.post('/submit', (req, res) => {
   }
 
   const userGuess = req.body.guess.trim().toLowerCase();
-  const correctAnswers = ["cat", "kitty", "feline"]; 
+  const correctAnswers = ["cvi", "velum interpositum", "cavum veli interpositi", "cavum velum interpositum cyst", "cavum velum interpositum"]; 
   const isCorrect = correctAnswers.includes(userGuess); 
 
   const user = req.session.user;
